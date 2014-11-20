@@ -10,43 +10,45 @@ animation.__index = animation
 -- numFrames: The number of frames for the initial animation
 -- returns the created animation
 function newAnimation(img, frameW, frameH, delay, start, numFrames)
-	 local anim = {}
-	 anim.img = img
-	 anim.frames = {}
-	 anim.delays = {}
-	 anim.timer = 0
-	 anim.position = start
-	 anim.frameW = frameW
-	 anim.frameH = frameH
-	 anim.delay = delay
-	 anim.playing = true
-	 anim.speed = 1
-	 anim.mode = 'loop'
-	 anim.direction = 1
-	 anim.imgW = img:getWidth()
-	 anim.imgH = img:getHeight()
+   local anim = {}
+   anim.img = img
+   anim.frames = {}
+   anim.delays = {}
+   anim.timer = 0
+   anim.position = start
+   anim.frameW = frameW
+   anim.frameH = frameH
+   anim.delay = delay
+   anim.playing = true
+   anim.speed = 1
+   anim.mode = 'loop'
+   anim.direction = 1
+   anim.imgW = img:getWidth()
+   anim.imgH = img:getHeight()
    anim.start = start
    anim.numFrames = numFrames or 1
    totalFrames = anim.imgW / frameW * anim.imgH / frameH
-	 local anim =  setmetatable(anim, animation)
-	 anim:_setQuads(start or 1, totalFrames)
-	 return anim
+
+   local anim =  setmetatable(anim, animation)
+   anim:_setQuads(start or 1, totalFrames)
+
+   return anim
 end
 
 -- set the quads for the animation
 function animation:_setQuads(start, numFrames)
-	 local rowsize = self.imgW/self.frameW
-	 self.frames = {}
-	 self.delays = {}
-	 
-	 for i = start, (numFrames + start) do
-			local row = math.floor((i-1)/rowsize)
-			local column = (i-1)%rowsize
-			local frame = love.graphics.newQuad(column*self.frameW, row*self.frameH, self.frameW, self.frameH, self.imgW, self.imgH)
-			
-			table.insert(self.frames, frame)
-			table.insert(self.delays, self.delay)
-	 end
+   local rowsize = self.imgW/self.frameW
+   self.frames = {}
+   self.delays = {}
+   
+   for i = start, (numFrames + start) do
+      local row = math.floor((i-1)/rowsize)
+      local column = (i-1)%rowsize
+      local frame = love.graphics.newQuad(column*self.frameW, row*self.frameH, self.frameW, self.frameH, self.imgW, self.imgH)
+      
+      table.insert(self.frames, frame)
+      table.insert(self.delays, self.delay)
+   end
 end
 
 --- Change the animation start and stop frame in the given image file
@@ -58,15 +60,15 @@ end
 --- Update the animation
 -- dt: Time that has passed since last call
 function animation:update(dt)
-	 if not self.playing then return end
+   if not self.playing then return end
    if self.position < self.start then 
       self.position = self.start 
    end
-	 self.timer = self.timer + dt * self.speed
-	 if self.timer > self.delays[self.position] then
-			self.timer = self.timer - self.delays[self.position]
-			self.position = self.position + self.direction
-			if self.position > self.start + self.numFrames then
+   self.timer = self.timer + dt * self.speed
+   if self.timer > self.delays[self.position] then
+      self.timer = self.timer - self.delays[self.position]
+      self.position = self.position + self.direction
+      if self.position > self.start + self.numFrames then
          if self.mode == 'loop' then
             self.position = self.start
          elseif self.mode == 'once' then
@@ -113,29 +115,29 @@ end
 
 --- Stop the animation
 function animation:stop()
-	 self.playing = false
+   self.playing = false
 end
 
 --- Reset
 -- Go back to the first frame.
 function animation:reset()
-	 return self:seek(1)
+   return self:seek(1)
 end
 
 --- Seek to a frame
 function animation:seek(frame)
-	 self.position = frame
-	 self.timer = 0
+   self.position = frame
+   self.timer = 0
 end
 
 --- Get the currently shown frame
 function animation:getCurrentFrame()
-	 return self.position
+   return self.position
 end
 
 --- Get the number of frames
 function animation:getSize()
-	 return #self.frames
+   return #self.frames
 end
 
 --- Set the delay between frames
