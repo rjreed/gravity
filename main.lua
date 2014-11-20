@@ -1,4 +1,3 @@
-
 require('libs/animate')
 
 function love.load()
@@ -8,7 +7,8 @@ function love.load()
    world = love.physics.newWorld(0, 9.81*32, true)
    
    objects = {}
-
+   
+   -- the player
    player = {}
    player.body = love.physics.newBody(world, 100, 100, 'dynamic')
    player.body:setMass(10)
@@ -16,23 +16,27 @@ function love.load()
    player.fixture = love.physics.newFixture(player.body, player.shape)
    player.img  = love.graphics.newImage('assets/player.png')
    player.anim = newAnimation(player.img, 64, 64, 0.1, 1, 3)
+   -- for animation flipping based on travel direction
    player.flip = false
 
    push(objects, player)
 
+   -- the ground
    static = {}
    static.body = love.physics.newBody(world, 0 ,700, 'static')
-   static.shape = love.physics.newEdgeShape(0, 0, 1000, 0)
+   static.shape = love.physics.newEdgeShape(0, 0, 2000, 0)
    static.fixture = love.physics.newFixture(static.body, static.shape)
 end
 
+-- moving the player around
 function move(obj)
    if love.keyboard.isDown('d') then
       player.anim:setFrameRange(5, 7)      
       player.flip = false
       obj.body:applyForce(1000, 0)
    elseif love.keyboard.isDown('a') then
-      player.anim:setFrameRange(5, 7)      
+      player.anim:setFrameRange(5, 7)
+      -- flip the animation
       player.flip = true
       obj.body:applyForce(-1000, 0)
    end
@@ -44,10 +48,10 @@ function move(obj)
 end
 
 function love.update(dt)
-   
    mouseX = love.mouse.getX()
    mouseY = love.mouse.getY()
    
+   -- for moving objects around, not currently used
    if love.mouse.isDown('l') then
       for i, v in pairs(objects) do
          if v.fixture:testPoint(mouseX, mouseY) then
@@ -57,16 +61,22 @@ function love.update(dt)
          end
       end
    end
-   player.anim:setFrameRange(1,3)
+   
    if love.keyboard.isDown('w', 'a', 's', 'd') then
       move(player)
+   else
+      player.anim:setFrameRange(1, 3)
    end
 
+   -- update calls
    world:update(dt)
    player.anim:update(dt)
 end
 
+-- draw call
 function love.draw()
-   player.anim:draw(player.body:getX() - 32, player.body:getY() - 32, 0, player.flip and  -1 or 1, 1, 32, 0) 
+   -- draw the player
+   player.anim:draw(player.body:getX() - 32, player.body:getY() - 32, 0, (player.flip and  -1 or 1), 1, 32, 0)
+   -- draw the ground
    love.graphics.line(static.body:getWorldPoints(static.shape:getPoints()))
 end
