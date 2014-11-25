@@ -10,10 +10,13 @@ function love.load()
    
    -- the player
    player = {}
+   player.prev_direction = 'none'
+   player.speed = 300
    player.body = love.physics.newBody(world, 100, 100, 'dynamic')
-   player.body:setMass(10)
+   player.body:setMass(100)
    player.shape = love.physics.newRectangleShape(32, 64)
    player.fixture = love.physics.newFixture(player.body, player.shape)
+   -- player.fixture:setFriction(0.1)
    player.img  = love.graphics.newImage('assets/player.png')
    player.anim = newAnimation(player.img, 64, 64, 0.1, 1, 3)
    -- for animation flipping based on travel direction
@@ -30,20 +33,55 @@ end
 
 -- moving the player around
 function move(obj)
-   if love.keyboard.isDown('d') then
+  local k = love.keyboard.isDown
+  local kdown = 0
+  local direction = ''
+  
+   if k('d') then
+      direction = 'd'
+      kdown = kdown + 1
       player.anim:setFrameRange(5, 7)      
       player.flip = false
-      obj.body:applyForce(1000, 0)
-   elseif love.keyboard.isDown('a') then
+      obj.body:applyForce(500, 0)
+   elseif k('a') then
+      direction = 'a'
+      kdown = kdown + 1
       player.anim:setFrameRange(5, 7)
       -- flip the animation
       player.flip = true
-      obj.body:applyForce(-1000, 0)
+      obj.body:applyForce(-500, 0)
    end
-   if love.keyboard.isDown('w') then
+   
+   if k('w') then 
+      direction = 'w'
+      kdown = kdown + 1
       obj.body:applyForce(0, -1000)
-   elseif love.keyboard.isDown('s') then
+   elseif k('s') then
+      direction = 's'
+      kdown = kdown + 1
       obj.body:applyForce(0, 1000)
+   end
+   
+   -- TODO changing direction causes sliding
+   local direction_match = direction == player.prev_direction 
+   if kdown > 0 and direction_match then
+      player.body:setLinearDamping(0)
+   elseif direction_match then
+      player.body:setLinearDamping(6)
+   else
+     player.body:setLinearDamping(15)
+   end
+   player.prev_direction = direction
+   
+   set_max_speed(player.body, 300)
+end
+
+function set_max_speed(body, speed)
+   local x, y = body:getLinearVelocity()
+   if x*x + y*y > speed*speed then
+      local angle = math.atan2(y,x)
+      body:setLinearVelocity(speed * math.cos(angle),
+                             speed * math.sin(angle))
    end
 end
 
@@ -62,9 +100,8 @@ function love.update(dt)
       end
    end
    
-   if love.keyboard.isDown('w', 'a', 's', 'd') then
-      move(player)
-   else
+   move(player)
+   if not love.keyboard.isDown('w', 'a', 's', 'd') then
       player.anim:setFrameRange(1, 3)
    end
 
